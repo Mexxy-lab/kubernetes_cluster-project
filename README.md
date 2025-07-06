@@ -54,7 +54,7 @@
         ```bash
         mkdir -p $HOME/.kube
         scp vagrant@192.168.56.13:/home/vagrant/admin.conf $HOME/.kube/config                           | Used to copy kube config file to worker node home dir. 
-        ssh -i .vagrant/machines/master-node/virtualbox/private_key vagrant@192.168.56.10               | Used to log in using private key
+        ssh -i /home/pumej/Documents/k8s-cluster/.vagrant/machines/master-node/virtualbox/private_key vagrant@192.168.56.10               | Used to log in using private key
         chmod 600 ~/Documents/k8s-cluster/.vagrant/machines/*/virtualbox/private_key                    | Used to set right permissions for ansible to work
         ssh-keygen -f '/home/pumej/.ssh/known_hosts' -R '192.168.56.13'                                 | Used to remove the previous key 
         ```
