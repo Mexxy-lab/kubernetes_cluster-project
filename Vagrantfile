@@ -2,7 +2,7 @@ VAGRANTFILE_API_VERSION = "2"
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.box = "alvistack/ubuntu-24.04"
-  config.vm.provider :vmware_desktop
+  config.vm.provider :virtualbox
 
   nodes = {
     "master-node" => "192.168.56.13",
