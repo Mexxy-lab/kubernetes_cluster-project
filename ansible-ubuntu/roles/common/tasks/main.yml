@@ -40,11 +40,11 @@
 # Containerd cleanup and install (exact match to working script)
 # ---------------------------------------------------------------------
 
-# - name: Stop containerd service
-#   systemd:
-#     name: containerd
-#     state: stopped
-#   ignore_errors: true
+- name: Stop containerd service
+  systemd:
+    name: containerd
+    state: stopped
+  ignore_errors: true
 
 - name: Remove old containerd packages
   apt:

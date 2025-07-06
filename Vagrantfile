@@ -5,8 +5,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.provider :virtualbox
 
   nodes = {
-    "master-node" => "192.168.56.15",
-    "worker-node1" => "192.168.56.16"
+    "master-node" => "192.168.56.13",
+    "worker-node1" => "192.168.56.14"
     # "worker-node2" => "192.168.56.12"
   }
 

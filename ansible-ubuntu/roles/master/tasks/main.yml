@@ -4,24 +4,12 @@
     path: /etc/kubernetes/admin.conf
   register: kubeadm_config
 
-- name: Ensure containerd is restarted and enabled
-  systemd:
-    name: containerd
-    state: restarted
-    enabled: true
-
-- name: Wait for containerd socket to be ready
-  wait_for:
-    path: /run/containerd/containerd.sock
-    state: present
-    timeout: 60
-
 - name: Initialize Kubernetes cluster with kubeadm (master node)
   become: true
   shell: |
     set -o pipefail
     kubeadm init \
-      --apiserver-advertise-address=192.168.56.15 \
+      --apiserver-advertise-address=192.168.56.13 \
       --pod-network-cidr=192.168.0.0/16 \
       --kubernetes-version=1.28.15 \
       --cri-socket=unix:///run/containerd/containerd.sock | tee /root/kubeadm-init.out
