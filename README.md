@@ -2,16 +2,16 @@
 
 - We are deploying a kubernetes cluster using 3 VMs provisioned by Vagrant and ansible for configuration. 
 
-    Step 1: Update and Upgrade Ubuntu (all nodes)
-    Step 2: Disable Swap (all nodes)
-    Step 3: Add Kernel Parameters (all nodes)
-    Step 4: Install Containerd Runtime (all nodes)
-    Step 5: Add Apt Repository for Kubernetes (all nodes)
-    Step 6: Install Kubectl, Kubeadm, and Kubelet (all nodes)
-    Step 7: Initialize Kubernetes Cluster with Kubeadm (master node)
-    Step 8: Add Worker Nodes to the Cluster (worker nodes)
-    Step 9: Install Kubernetes Network Plugin (master node)
-    Step 10: Verify the cluster and test (master node)
+        - Step 1: Update and Upgrade Ubuntu (all nodes)
+        - Step 2: Disable Swap (all nodes)
+        - Step 3: Add Kernel Parameters (all nodes)
+        - Step 4: Install Containerd Runtime (all nodes)
+        - Step 5: Add Apt Repository for Kubernetes (all nodes)
+        - Step 6: Install Kubectl, Kubeadm, and Kubelet (all nodes)
+        - Step 7: Initialize Kubernetes Cluster with Kubeadm (master node)
+        - Step 8: Add Worker Nodes to the Cluster (worker nodes)
+        - Step 9: Install Kubernetes Network Plugin (master node)
+        - Step 10: Verify the cluster and test (master node)
 
 ## Below command would be used for the VM provisioning 
 
