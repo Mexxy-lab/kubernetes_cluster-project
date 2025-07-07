@@ -1,4 +1,4 @@
-## This is a K8-cluster deployment project 
+## This is a K8-cluster deployment project. This set up was done with Windows WSL.  
 
 - We are deploying a kubernetes cluster using 3 VMs provisioned by Vagrant and ansible for configuration. 
 
@@ -17,7 +17,7 @@
 
         ```bash
         vagrant plugin install vagrant-vmware-desktop       | Make sure vm ware plug in is installed
-        vagrant up     | vagran.exe up 
+        vagrant up     | vagran.exe up                      | Make sure to kepp VB open during this run
         vagrant up --provider=vmware_desktop                | To use vm ware workstation 
         ```
 
