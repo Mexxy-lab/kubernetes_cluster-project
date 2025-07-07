@@ -1,11 +1,11 @@
 ---
-- name: Disable Swap
+- name: Disable swap (required by Kubernetes)
   shell: |
     swapoff -a
     sed -i '/ swap / s/^/#/' /etc/fstab
   become: true
 
-- name: Load kernel modules
+- name: Load kernel modules config
   copy:
     dest: /etc/modules-load.d/containerd.conf
     content: |
@@ -23,7 +23,7 @@
     name: br_netfilter
     state: present
 
-- name: Apply sysctl parameters for Kubernetes
+- name: Apply sysctl parameters for Kubernetes networking
   copy:
     dest: /etc/sysctl.d/kubernetes.conf
     content: |
@@ -37,16 +37,10 @@
   become: true
 
 # ---------------------------------------------------------------------
-# Containerd cleanup and install (exact match to working script)
+# Install Containerd (version 1.6.27) and configure SystemdCgroup
 # ---------------------------------------------------------------------
 
-- name: Stop containerd service
-  systemd:
-    name: containerd
-    state: stopped
-  ignore_errors: true
-
-- name: Remove old containerd packages
+- name: Remove existing containerd and config
   apt:
     name:
       - containerd
@@ -54,13 +48,13 @@
     state: absent
   ignore_errors: true
 
-- name: Remove old containerd config dir
+- name: Remove old containerd config directory
   file:
     path: /etc/containerd
     state: absent
   ignore_errors: true
 
-- name: Download containerd 1.6.27 .deb package
+- name: Download containerd 1.6.27 package
   get_url:
     url: https://download.docker.com/linux/ubuntu/dists/jammy/pool/stable/amd64/containerd.io_1.6.27-1_amd64.deb
     dest: /tmp/containerd.io_1.6.27-1_amd64.deb
@@ -70,18 +64,20 @@
   apt:
     deb: /tmp/containerd.io_1.6.27-1_amd64.deb
 
-- name: Create containerd config directory
-  file:
-    path: /etc/containerd
-    state: directory
-    mode: '0755'
-
-- name: Generate default containerd config
-  shell: containerd config default | tee /etc/containerd/config.toml
+- name: Generate default containerd config with CRI support
+  shell: |
+    containerd config default > /etc/containerd/config.toml
   args:
     creates: /etc/containerd/config.toml
 
-- name: Set SystemdCgroup to true
+- name: Ensure CRI plugin block exists in containerd config
+  lineinfile:
+    path: /etc/containerd/config.toml
+    regexp: '^#?version ='
+    line: 'version = 2'
+    state: present
+
+- name: Set SystemdCgroup = true in containerd config
   replace:
     path: /etc/containerd/config.toml
     regexp: '^(\s*)SystemdCgroup = false'
@@ -96,7 +92,7 @@
     state: restarted
     enabled: yes
 
-- name: Configure crictl to use containerd socket
+- name: Configure crictl to use containerd
   copy:
     dest: /etc/crictl.yaml
     content: |
@@ -107,10 +103,10 @@
     mode: '0644'
 
 # ---------------------------------------------------------------------
-# Kubernetes APT Repo Setup
+# Kubernetes APT Repository & Package Setup
 # ---------------------------------------------------------------------
 
-- name: Ensure directory for apt keyrings exists
+- name: Ensure apt keyrings directory exists
   file:
     path: /etc/apt/keyrings
     state: directory
@@ -122,14 +118,14 @@
   args:
     creates: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
 
-- name: Add Kubernetes apt repository
+- name: Add Kubernetes apt repo
   apt_repository:
     repo: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.28/deb/ /"
     state: present
     filename: kubernetes
     update_cache: yes
 
-- name: Install Kubernetes packages
+- name: Install Kubernetes components
   apt:
     name:
       - kubelet
@@ -138,7 +134,7 @@
     state: present
     update_cache: yes
 
-- name: Hold Kubernetes packages to prevent automatic upgrade
+- name: Hold Kubernetes versions
   dpkg_selections:
     name: "{{ item }}"
     selection: hold
@@ -146,3 +142,9 @@
     - kubelet
     - kubeadm
     - kubectl
+
+- name: Enable and start kubelet
+  systemd:
+    name: kubelet
+    enabled: yes
+    state: started

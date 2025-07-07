@@ -63,6 +63,7 @@
 
         ```bash
         kubeadm token create --print-join-command                                   | Used to output the script to run to join a cluster
+	kubectl label node worker-node1 node-role.kubernetes.io/worker=worker       | Used to label a node status correct.
         ```
 
 

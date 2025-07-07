@@ -4,7 +4,19 @@
     path: /etc/kubernetes/admin.conf
   register: kubeadm_config
 
-- name: Initialize Kubernetes cluster with kubeadm (master node)
+- name: Restart containerd to ensure it's running
+  systemd:
+    name: containerd
+    state: restarted
+    enabled: true
+
+- name: Wait for containerd socket to be ready
+  wait_for:
+    path: /run/containerd/containerd.sock
+    state: present
+    timeout: 60
+
+- name: Initialize Kubernetes control plane
   become: true
   shell: |
     set -o pipefail
@@ -17,8 +29,13 @@
     executable: /bin/bash
   when: not kubeadm_config.stat.exists
 
+- name: Enable and start kubelet (just in case)
+  systemd:
+    name: kubelet
+    enabled: yes
+    state: started
+
 - name: Create .kube directory for vagrant user
-  become: true
   file:
     path: /home/vagrant/.kube
     state: directory
@@ -27,7 +44,6 @@
     mode: '0755'
 
 - name: Copy kubeconfig to vagrant user
-  become: true
   copy:
     src: /etc/kubernetes/admin.conf
     dest: /home/vagrant/.kube/config
@@ -36,7 +52,7 @@
     group: vagrant
     mode: '0600'
 
-- name: Check if Calico CNI is already installed
+- name: Check if Calico is already installed
   command: kubectl get daemonset calico-node -n kube-system
   environment:
     KUBECONFIG: /etc/kubernetes/admin.conf
@@ -44,22 +60,19 @@
   failed_when: false
   changed_when: false
 
-- name: Install Calico CNI
-  become: true
+- name: Apply Calico CNI
   shell: |
     export KUBECONFIG=/etc/kubernetes/admin.conf
     kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.25.0/manifests/calico.yaml
   when: calico_status.rc != 0
 
-- name: Extract kubeadm join command
-  become: true
+- name: Save kubeadm join command
   shell: |
     kubeadm token create --print-join-command > /home/vagrant/kubeadm-join.sh
   args:
     creates: /home/vagrant/kubeadm-join.sh
 
 - name: Make join script executable
-  become: true
   file:
     path: /home/vagrant/kubeadm-join.sh
     mode: '0755'

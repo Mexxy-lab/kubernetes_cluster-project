@@ -1,17 +1,18 @@
+---
 - name: Reset kubeadm on the worker node (safe retry setup)
   become: true
-  ansible.builtin.command: kubeadm reset -f
+  command: kubeadm reset -f
   ignore_errors: true
 
-- name: Remove old CNI config to allow fresh init
+- name: Remove old CNI configuration (for a clean state)
   become: true
-  ansible.builtin.file:
+  file:
     path: /etc/cni/net.d
     state: absent
 
 - name: Restart containerd to ensure clean runtime
   become: true
-  ansible.builtin.systemd:
+  systemd:
     name: containerd
     state: restarted
     enabled: true
@@ -25,14 +26,14 @@
 
 - name: Fetch kubeadm join script from master
   delegate_to: master-node
-  ansible.builtin.fetch:
+  fetch:
     src: /home/vagrant/kubeadm-join.sh
     dest: /tmp/kubeadm-join.sh
     flat: yes
 
 - name: Copy kubeadm join script to worker node
   become: true
-  ansible.builtin.copy:
+  copy:
     src: /tmp/kubeadm-join.sh
     dest: /home/vagrant/kubeadm-join.sh
     mode: '0755'
@@ -41,17 +42,17 @@
 
 - name: Join Kubernetes cluster
   become: true
-  ansible.builtin.command: bash /home/vagrant/kubeadm-join.sh
+  command: bash /home/vagrant/kubeadm-join.sh
   args:
     creates: /etc/kubernetes/kubelet.conf
 
-- name: Wait for kubelet to start and register node
+- name: Wait for kubelet to register this node with the control plane
   become: true
-  ansible.builtin.wait_for:
+  wait_for:
     path: /etc/kubernetes/kubelet.conf
     timeout: 60
 
-- name: Copy kubeconfig from master to worker
+- name: Fetch kubeconfig from master (for local vagrant usage)
   become: true
   delegate_to: master-node
   fetch:

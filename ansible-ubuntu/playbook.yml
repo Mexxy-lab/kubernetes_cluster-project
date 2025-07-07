@@ -2,16 +2,16 @@
   hosts: all
   become: true
   roles:
-    - common
+  - { role: common, tags: ['common'] }
 
 - name: Initialize master node
   hosts: master
   become: true
   roles:
-    - master
+  - { role: master, tags: ['master'] }
 
 - name: Join worker nodes
   hosts: workers
   become: true
   roles:
-    - worker
+  - { role: worker, tags: ['worker'] }
